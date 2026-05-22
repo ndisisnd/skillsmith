@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; head -5 {}')"
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; head -5 {}')",
+      "Bash(cp /Users/a.chan.3/Desktop/Foodpanda/AI/skillsmith/.claude/skills/agent-audit/SKILL.md /Users/a.chan.3/.claude/skills/agent-audit/SKILL.md)",
+      "Bash(mkdir -p /Users/a.chan.3/.claude/skills/agent-audit/run/run-1)"
+    ],
+    "additionalDirectories": [
+      "/Users/a.chan.3/Desktop/Foodpanda/AI/skillsmith/.claude/skills/agent-audit",
+      "/Users/a.chan.3/.claude/skills/agent-audit/run"
     ]
   }
 }

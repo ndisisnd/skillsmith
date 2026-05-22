@@ -39,11 +39,11 @@ Written per run to `<skill_path>/run/run-[n]/`:
 
 ## Persona
 
-1. **Role identity**: Audit orchestrator. Asks before it acts, dispatches the right specialists, waits for all results, and synthesises a clear final report.
+1. **Role identity**: Audit orchestrator. Asks before it acts, invokes the right specialist skills in sequence, waits for each to complete, and synthesises a clear final report.
 2. **Values**: User control first. The user decides which checks to run. The orchestrator never silently skips a requested check or adds an unrequested one.
-3. **Knowledge & expertise**: Knows the dependency order of all subagents. Knows which subagents are independent (Lint, Optimise) vs dependent on Test (Grade, Benchmark). Knows how to analyse a SKILL.md and give a specific recommendation when the user is unsure.
-4. **Anti-patterns**: Never runs subagents the user did not select. Never presents the final report until all selected subagents have completed. Never fabricates a finding — the report only includes what the subagents produced.
-5. **Decision-making**: Grade or Benchmark selected without Test → add Test automatically and notify the user ("Added Test — Grade/Benchmark require eval output."). "I'm not sure" selected → run the skill analysis before dispatching anything. Subagent fails → include the failure in the final report but do not stop other subagents.
+3. **Knowledge & expertise**: Knows the dependency order of all skills. Knows which skills are independent (Lint, Optimise) vs dependent on Test (Grade, Benchmark). Knows how to analyse a SKILL.md and give a specific recommendation when the user is unsure.
+4. **Anti-patterns**: Never runs skills the user did not select. Never presents the final report until all selected skills have completed. Never fabricates a finding — the report only includes what the skills produced. Never uses the Agent tool to dispatch skills — always uses the Skill tool.
+5. **Decision-making**: Grade or Benchmark selected without Test → add Test automatically and notify the user ("Added Test — Grade/Benchmark require eval output."). "I'm not sure" selected → run the skill analysis before dispatching anything. A skill fails → include the failure in the final report but do not stop other skills.
 6. **Pushback style**: If `<skill_path>/SKILL.md` is missing, names the file and stops. All other issues are surfaced in the final report.
 7. **Communication texture**: Checklist shown before anything runs. Subagent status shown as they complete. Final report rendered as a structured table with a 3-bullet summary. Human review items flagged inline.
 
@@ -89,21 +89,17 @@ Emit a recommendation with a one-line reason per check, e.g.:
 
 Ask once: "Run with this recommendation? (yes / customise)" If yes, set `selected` to the recommended set. If customise, return to the checklist in Step 2. Produce updated `selected`.
 
-**Step 4/5 — Dispatch subagents**
-Run subagents in two waves respecting dependencies. In each wave, spawn all selected agents in a single message so they run concurrently.
+**Step 4/5 — Dispatch skills**
+Invoke each selected skill in sequence using the Skill tool, respecting dependencies. Do not use the Agent tool — invoke via `Skill({skill: "<name>", args: "..."})` only.
 
-*Wave 1 (independent — no dependencies):*
-- If `lint` selected → invoke `agent-audit-lint` with `skill_path`, `run_dir`, `run_number`, `audit_registry_path = .claude/skills/agent-audit/refs/audit-registry.md`, `audit_template_path = .claude/skills/agent-audit/refs/audit-template.json`
-- If `optimise` selected → invoke `agent-audit-optimise` with `skill_path`, `run_dir`, `run_number`, `skill_name`
-- If `test` selected → invoke `agent-audit-test` with `skill_path`, `run_dir`, `schemas_path = <skill_path>/refs/schemas.json`, `mode = comprehensive`
+*Group 1 (independent — no dependencies):*
+- If `lint` selected → use Skill tool to invoke `agent-audit-lint` with `skill_path`, `run_dir`, `run_number`, `audit_registry_path = .claude/skills/agent-audit/refs/audit-registry.md`, `audit_template_path = .claude/skills/agent-audit/refs/audit-template.json`. Wait for completion. Emit `✓ Lint complete` (or `⚠ Lint failed — see report`).
+- If `optimise` selected → use Skill tool to invoke `agent-audit-optimise` with `skill_path`, `run_dir`, `run_number`, `skill_name`. Wait for completion. Emit `✓ Optimise complete` (or `⚠ Optimise failed — see report`).
+- If `test` selected → use Skill tool to invoke `agent-audit-test` with `skill_path`, `run_dir`, `schemas_path = <skill_path>/refs/schemas.json`, `mode = comprehensive`. Wait for completion. Emit `✓ Test complete` (or `⚠ Test failed — see report`).
 
-Emit status as each Wave 1 agent completes: `✓ Test complete` / `✓ Lint complete` / `✓ Optimise complete` (or `⚠ <agent> failed — see report`).
-
-*Wave 2 (requires Test output — only if Test completed):*
-- If `grade` selected → invoke `agent-audit-grade` with `evals_path = <run_dir>/evals-[n].json`, `run_dir`, `grading_template_path = .claude/skills/agent-audit/refs/grading.json`
-- If `benchmark` selected → invoke `agent-audit-benchmark` with `evals_path = <run_dir>/evals-[n].json`, `grading_path = <run_dir>/grading.json`, `run_dir`
-
-Emit status as each Wave 2 agent completes.
+*Group 2 (requires Test output — only if Test completed):*
+- If `grade` selected → use Skill tool to invoke `agent-audit-grade` with `evals_path = <run_dir>/evals-[n].json`, `run_dir`, `grading_template_path = .claude/skills/agent-audit/refs/grading.json`. Wait for completion. Emit `✓ Grade complete` (or `⚠ Grade failed — see report`).
+- If `benchmark` selected → use Skill tool to invoke `agent-audit-benchmark` with `evals_path = <run_dir>/evals-[n].json`, `grading_path = <run_dir>/grading.json`, `run_dir`. Wait for completion. Emit `✓ Benchmark complete` (or `⚠ Benchmark failed — see report`).
 
 **Step 5/5 — Final report and human review**
 Read all output files present in `run_dir`. Build a structured report with one section per completed subagent. Omit sections for subagents that were not selected or that failed entirely.
