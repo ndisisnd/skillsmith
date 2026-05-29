@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="andychanfp/skillsmith"
+REPO="ndisisnd/skillsmith"
 BRANCH="main"
 TARBALL_URL="${TARBALL_URL:-https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz}"
 SKILLS_DEST="${HOME}/.claude/skills"
