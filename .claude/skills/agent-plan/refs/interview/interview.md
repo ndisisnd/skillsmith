@@ -81,7 +81,29 @@ Include a persona only when the agent embodies a specialist human role. Leave th
 - No specific human role is implied by the ask or the interview answers
 - The required expertise is tool/framework knowledge rather than role-specific judgment
 
-Hand off to the plan generator when every required row is filled and no signal flags are open.
+## Tier inference
+
+After the spec table is filled and all signal flags are resolved, infer the output tier from three signals:
+
+| Signal | How to detect | Weight |
+|--------|--------------|--------|
+| Step count | Q5 "single-shot" → Low; "multi-step" → High | Major |
+| I/O breadth | Multiple input types (Q3) or branching/multiple outputs (Q4) → High | Major |
+| Sub-skill / composition | Q5 or Q8 indicates invoking other skills or spawning agents → High | Major |
+
+Map High-signal count to a base tier:
+
+| High signals | Tier |
+|-------------|------|
+| 0 | Simple |
+| 1 | Standard |
+| 2–3 | Complex |
+
+Emit: `[TIER: <tier>] — <one-line rationale citing which signals drove the decision>`
+
+If the user stated a tier explicitly in their initial ask, skip inference and use their stated tier.
+
+Hand off to the plan generator when every required row is filled, no signal flags are open, and the tier is confirmed.
 
 ## Conduct rules
 

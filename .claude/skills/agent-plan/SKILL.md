@@ -65,7 +65,12 @@ Emit it unconditionally, including for steps that produce no other user-visible 
 Read the user's invocation. If an ask is present, store it as `ask`. If no ask, jump to Step 2's opening question. Detect mode from the message; default to `thinking`.
 
 **Step 2 — Let's dive deeper** `[model: opus]`
-Follow `refs/interview/interview.md` end-to-end. Skip the opening question if `ask` is set. Apply signal flagging after every answer. Stop when the spec table is filled and no flags are open.
+Follow `refs/interview/interview.md` end-to-end. Skip the opening question if `ask` is set. Apply signal flagging after every answer. When the spec table is filled and no flags are open, the interview protocol infers the complexity tier. Surface the result to the user:
+
+> `[TIER: <tier>] — <rationale>`
+> "(1) confirm  (2) override"
+
+On override, ask: "What tier? (Simple / Standard / Complex)" and store the user's answer. Store the confirmed tier in spec as `tier`.
 
 **Step 3 — Here's what this agent looks like** `[model: opus]`
 Write a ≤150-word summary covering: what the agent does, who it serves, when it activates, what it refuses, what makes it specialist. Use `refs/language.md` rules — imperatives, no hedging, plain English.
@@ -126,7 +131,7 @@ Ask the user where to save the plan and skill files:
 Store `output_dir` in spec. If `output_dir` is set, run `mkdir -p <output_dir>` via Bash before proceeding. Proceed to Step 8.
 
 **Step 8 — Emit the plan** `[model: sonnet]`
-Render the captured spec into `refs/plan-template.md` structure. Include the approved summary, approved priority table, approved workflow diagram, the approved test pairs with their prompts, expected outputs, and actual outputs, and `output_dir` (null if Global). Determine the plan file path:
+Render the captured spec into `refs/plan-template.md` structure. Apply the tier constraints from Section 0 of that template: omit sections forbidden by the confirmed tier, include sections required by it, cap ref count and folder nesting to the tier's declared limits. Apply per-dimension overrides only where a strong signal is present. Include the approved summary, approved priority table, approved workflow diagram, the approved test pairs with their prompts, expected outputs, and actual outputs, and `output_dir` (null if Global). Determine the plan file path:
 
 - **Global** (`output_dir` is null): write to `plans/<spec.name>.md`
 - **Desktop / Custom** (`output_dir` is set): write to `<output_dir>/<spec.name>-plan.md`

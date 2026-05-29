@@ -12,6 +12,36 @@ order. Required sections cannot be empty. Optional sections may be omitted.
 For workflow diagram conventions, see `workflow-template.md`.
 For persona structure, see `persona.md`.
 
+## 0. Complexity Tier (required)
+
+Declare the confirmed tier at the top of every plan. `agent-build` uses this to validate output shape.
+
+```yaml
+tier: Simple | Standard | Complex
+```
+
+Tier constraints — each tier declares which sections are required (✓), optional (○), or forbidden (✗):
+
+| Section | Simple | Standard | Complex |
+|---------|--------|----------|---------|
+| Persona | ✗ | ○ | ✓ |
+| Workflow diagram | ✗ | ✓ | ✓ |
+| Reference files | 0–1 | 1–4 | 3+ |
+| Sub-skills | ✗ | ○ | ○ |
+| Folder nesting | Flat | 1 level | 2 levels |
+
+### Per-dimension overrides
+
+Override individual dimensions when a strong signal contradicts the base tier default. Fill the override column only when a specific signal applies — leave blank otherwise.
+
+| Dimension | Simple | Standard | Complex | Override condition |
+|-----------|--------|----------|---------|-------------------|
+| Persona | Omit | Optional | Required | User names an explicit specialist role at any tier |
+| Workflow diagram | Omit | Required | Required | Multi-step flow detected at Simple tier |
+| Ref count | 0–1 | 1–4 | 3+ | A reusable vocabulary or template is clearly needed beyond the cap |
+| Sub-skills | None | Optional | Allowed | Composition signal detected at any tier |
+| Folder nesting | Flat | 1 level | 2 levels | Sub-skills require isolation; never exceed 2 levels |
+
 ## 1. Skill identity (required)
 
 YAML frontmatter for the generated SKILL.md.

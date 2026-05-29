@@ -30,6 +30,10 @@ type: reference
 - **Defaults before exceptions**: State the rule, then the exception on a new line. Example: "Use imperatives. Exception: rationale paragraphs may use declarative voice."
 - **Stable vocabulary**: Use the same term for the same concept throughout; never synonym-swap.
 
+## Calibration
+- **Match output to tier**: Output shape must match the confirmed complexity tier. Do not add sections, ref files, or folder nesting beyond the tier's declared shape.
+- **Defaults before overrides**: Apply the base tier shape first; override individual dimensions only when a specific signal justifies it.
+
 # Anti-Patterns (Token Wasters)
 - **Verbose Explanations:** "This is important because..." → Delete
 - **Redundant Info:** Same info in multiple places
